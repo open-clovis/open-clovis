@@ -1,6 +1,6 @@
 services:
   agent:
-    build: .
+    build: https://github.com/thiagob/claude-clovis.git
     container_name: claude-${BOT_NAME:-clovis}
     restart: unless-stopped
     stdin_open: true       # Claude expects a TTY-ish stdin
@@ -12,4 +12,4 @@ services:
     environment:
       TZ: America/Sao_Paulo
       CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN}
-      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}

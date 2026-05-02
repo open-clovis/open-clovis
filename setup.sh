@@ -27,6 +27,16 @@ else
   echo "BOT_NAME=${bot_name}" >> .env
 fi
 
+# Prompt for Telegram bot token
+read -rp "Telegram bot token (from @BotFather, leave blank to set later): " telegram_token
+if [ -n "$telegram_token" ]; then
+  if grep -q '^TELEGRAM_BOT_TOKEN=' .env; then
+    sed -i "s/^TELEGRAM_BOT_TOKEN=.*/TELEGRAM_BOT_TOKEN=${telegram_token}/" .env
+  else
+    echo "TELEGRAM_BOT_TOKEN=${telegram_token}" >> .env
+  fi
+fi
+
 echo "Setup complete. Edit .env with your tokens, then run:"
 echo "  docker compose build"
 echo "  docker compose run --rm agent"
