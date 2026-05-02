@@ -15,8 +15,8 @@ Clovis is the alternative: the same concept, but self-hosted, small, and built o
 **Where it's going:**
 
 - **Easy, reproducible setup** — clone, run `setup.sh`, and have a working agent in minutes ✓
-- **Commonly used tools** — integrations with Gmail, Todoist, WhatsApp, Google Calendar, and others
-- **Granular access control** — each integration restricted to read-only by default, so the agent can read your emails without being able to send them, read your calendar without creating events. You decide what it can touch.
+- **MCP tool integrations** — Gmail, Todoist, WhatsApp, Google Calendar, and others will be added incrementally as MCP servers
+- **Granular access control** — each MCP tool restricted to read-only by default, so the agent can read your emails without being able to send them, read your calendar without creating events. You decide what it can touch.
 
 > **Compliance note:** Clovis is designed for personal use. If you are considering using it in a work context, your organization may have data governance policies, corporate IT requirements, or regulatory obligations (GDPR, HIPAA, SOC 2, etc.) that govern what tools can access company data. Evaluate accordingly — personal and professional contexts carry very different rules.
 
