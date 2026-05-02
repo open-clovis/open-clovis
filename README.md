@@ -72,7 +72,6 @@ For Clovis to push changes, set `GITHUB_TOKEN` in `.env` with a GitHub personal 
 
 ```env
 BOT_NAME=clovis
-TODOIST_API_TOKEN=your-todoist-token
 CLAUDE_CODE_OAUTH_TOKEN="your-claude-oauth-token"
 GITHUB_TOKEN=your-github-pat
 ```
@@ -122,7 +121,6 @@ Open Telegram and message your bot. Clovis will respond as if you were using Cla
 | `BOT_NAME` | Yes | Agent name — sets the Docker container name to `claude-<name>` |
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Long-lived auth token from `claude setup-token` |
 | `GITHUB_TOKEN` | No | GitHub PAT for Clovis to push to the workspace repo |
-| `TODOIST_API_TOKEN` | No | Todoist integration token |
 | `TZ` | No | Container timezone. Defaults to `America/Sao_Paulo` |
 
 ### Volumes
