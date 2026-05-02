@@ -2,6 +2,8 @@
 
 Clovis is a persistent AI agent built on [Claude Code](https://claude.ai/code), reachable via Telegram. It runs as a Docker container and operates on a dedicated git workspace.
 
+![Clovis answering a question via Telegram](docs/telegram-demo.png)
+
 ## Motivation
 
 This project started as an exploration of [openclaw.ai](https://openclaw.ai/) — a cloud-based AI assistant that connects to your email, calendar, todos, and messages. The idea was compelling, but the security implications were not: you are handing a third-party service full access to your Gmail, WhatsApp, and the rest of your personal data, with no real visibility into what it does with it.
