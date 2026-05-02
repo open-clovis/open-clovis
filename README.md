@@ -2,6 +2,16 @@
 
 Clovis is a persistent AI agent built on [Claude Code](https://claude.ai/code), reachable via Telegram. It runs as a Docker container and operates on a dedicated git workspace.
 
+## Motivation
+
+This project started as an exploration of [openclaw.ai](https://openclaw.ai/) — a cloud-based AI assistant that connects to your email, calendar, todos, and messages. The idea was compelling, but the security implications were not: your personal data routed through a third-party service, with all the exposure that entails.
+
+Clovis is the alternative: the same concept, but self-hosted, small, and built on Claude Code — a tool with a strong track record and active development. You own the container, the credentials never leave your machine, and everything the agent does is visible in git history.
+
+The scope is intentionally personal: emails, todos, calendar, and messages, accessed via Telegram from wherever you are.
+
+> **Compliance note:** Clovis is designed for personal use. If you are considering using it in a work context, your organization may have data governance policies, corporate IT requirements, or regulatory obligations (GDPR, HIPAA, SOC 2, etc.) that govern what tools can access company data. Evaluate accordingly — personal and professional contexts carry very different rules.
+
 ## Concept
 
 An agent instance is made of two repos:
@@ -45,22 +55,10 @@ The script prompts for the bot name, creates all required directories and files 
 Create `clovis-workspace` on GitHub, then clone it into `./data/workspace/`:
 
 ```bash
-git clone https://github.com/thiagob/clovis-workspace.git data/workspace
+git clone https://github.com/<your-username>/clovis-workspace.git data/workspace
 ```
 
-For Clovis to push changes, configure git credentials inside the container. Add a GitHub personal access token to `.env`:
-
-```env
-GITHUB_TOKEN=your-github-pat
-```
-
-Then add to `docker-compose.yml` under `environment`:
-
-```yaml
-GITHUB_TOKEN: ${GITHUB_TOKEN}
-```
-
-Clovis will use it to authenticate when pushing to the workspace repo.
+For Clovis to push changes, set `GITHUB_TOKEN` in `.env` with a GitHub personal access token — it is already wired into the container and configured for git authentication at startup.
 
 ### 4. Fill in `.env`
 
