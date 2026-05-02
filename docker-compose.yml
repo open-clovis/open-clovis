@@ -11,5 +11,6 @@ services:
       - ./data/workspace:/workspace               # what Claude operates on
     environment:
       TZ: America/Sao_Paulo
-      TODOIST_API_TOKEN: ${TODOIST_API_TOKEN}
       CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      TODOIST_API_TOKEN: ${TODOIST_API_TOKEN}

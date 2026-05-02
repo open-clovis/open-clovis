@@ -14,9 +14,13 @@ RUN npm install -g @anthropic-ai/claude-code
 
 # Run as non-root for safety
 RUN useradd -m -u 1001 claude
+
+COPY --chown=claude:claude entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 USER claude
 WORKDIR /workspace
 
 # tini reaps zombies; Bun spawns subprocesses for the channel MCP
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["claude", "--channels", "plugin:telegram@claude-plugins-official"]
+CMD ["/entrypoint.sh"]
