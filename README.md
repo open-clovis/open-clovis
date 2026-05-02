@@ -87,9 +87,10 @@ docker compose run --rm agent
 ```
 
 On first start Claude Code will:
-1. Ask you to select a login method — choose **Claude account with subscription**
-2. Show a URL to complete OAuth in your browser
-3. Show a theme/onboarding wizard — complete it fully before exiting
+1. Warn that `.claude.json` contains invalid JSON — choose **Reset with default configuration**
+2. Ask you to select a login method — choose **Claude account with subscription**
+3. Show a URL to complete OAuth in your browser
+4. Show a theme/onboarding wizard — complete it fully before exiting
 
 Once inside, install and configure the Telegram plugin:
 
