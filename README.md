@@ -1,12 +1,6 @@
-# claude-clovis-template
+# claude-clovis
 
-A template for running [Claude Code](https://claude.ai/code) as a persistent, Telegram-connected Docker agent. Fork this repo once per agent — each fork becomes an independent instance with its own name, Telegram bot, workspace, and configuration.
-
-```
-thiagob/claude-clovis-template   ← this repo (template, don't run directly)
-       ↓ fork          ↓ fork
-thiagob/claude-jarbas  thiagob/claude-eve   ← one repo per agent
-```
+Run [Claude Code](https://claude.ai/code) as a persistent Docker container connected to Telegram via the official channels plugin.
 
 ## How it works
 
@@ -14,15 +8,13 @@ The container installs Claude Code and starts it with the `--channels` flag, loa
 
 > **Note:** The Telegram channels feature requires a compatible Claude plan (Pro, Max, Team, or Enterprise).
 
-## Creating a new agent
+## Setup
 
-### 1. Fork this template
-
-Click **Use this template** on GitHub, name the new repo after your agent (e.g. `claude-jarbas`), then clone it:
+### 1. Clone the repo
 
 ```bash
-git clone https://github.com/thiagob/claude-jarbas.git
-cd claude-jarbas
+git clone https://github.com/thiagob/claude-clovis.git
+cd claude-clovis
 ```
 
 ### 2. Run setup
@@ -34,6 +26,7 @@ cd claude-jarbas
 The script will ask for the bot name, create the required directories and files, set correct permissions, and generate a `.env` from the example.
 
 ### 3. Fill in `.env`
+
 
 ```env
 BOT_NAME=jarbas
