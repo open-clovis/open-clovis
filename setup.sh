@@ -8,11 +8,9 @@ if [ -z "$bot_name" ]; then
   exit 1
 fi
 
-# Create data directories
-mkdir -p data/config data/workspace
-
-# Create claude.json as a file (Docker would create it as a directory if missing)
-touch data/claude.json
+# Create data directories and files (sudo needed if data/ is root-owned from a previous run)
+sudo mkdir -p data/config data/workspace
+sudo touch data/claude.json
 
 # Set ownership to match the container's claude user (UID 1001)
 sudo chown -R 1001:1001 data/
