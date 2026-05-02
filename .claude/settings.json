@@ -2,17 +2,5 @@
   "attribution": {
     "commit": "",
     "pr": ""
-  },
-  "permissions": {
-    "allow": [
-      "Bash(chmod +x /opt/docker/claude-clovis/setup.sh)",
-      "Bash(git add *)",
-      "Bash(git commit -m ' *)",
-      "Bash(chmod +x /opt/docker/claude-clovis/reset.sh)",
-      "Bash(git commit *)",
-      "Skill(update-config)",
-      "Skill(update-config:*)",
-      "Bash(git check-ignore *)"
-    ]
   }
 }
