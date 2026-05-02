@@ -1,4 +1,4 @@
-# claude-clovis
+# claude-clovis-template
 
 Run [Claude Code](https://claude.ai/code) as a persistent Docker container connected to Telegram via the official channels plugin.
 
@@ -16,9 +16,11 @@ The container installs Claude Code and starts it with the `--channels` flag, loa
 
 ## Setup
 
-Run the setup script — it creates all required directories and files with the correct permissions:
+Use this repo as a template on GitHub, then clone your new repo:
 
 ```bash
+git clone https://github.com/thiagob/claude-clovis-template.git claude-<botname>
+cd claude-<botname>
 ./setup.sh
 ```
 
