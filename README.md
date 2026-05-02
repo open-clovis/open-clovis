@@ -4,11 +4,17 @@ Clovis is a persistent AI agent built on [Claude Code](https://claude.ai/code), 
 
 ## Motivation
 
-This project started as an exploration of [openclaw.ai](https://openclaw.ai/) — a cloud-based AI assistant that connects to your email, calendar, todos, and messages. The idea was compelling, but the security implications were not: your personal data routed through a third-party service, with all the exposure that entails.
+This project started as an exploration of [openclaw.ai](https://openclaw.ai/) — a cloud-based AI assistant that connects to your email, calendar, todos, and messages. The idea was compelling, but the security implications were not: you are handing a third-party service full access to your Gmail, WhatsApp, and the rest of your personal data, with no real visibility into what it does with it.
 
-Clovis is the alternative: the same concept, but self-hosted, small, and built on Claude Code — a tool with a strong track record and active development. You own the container, the credentials never leave your machine, and everything the agent does is visible in git history.
+The internet has also produced some memorable reminders of what happens when an agent has write access to everything and acts on ambiguous instructions — [like texting your ex](https://www.reddit.com/r/ChatGPT/comments/1sng426/my_openclaw_texted_my_ex/).
 
-The scope is intentionally personal: emails, todos, calendar, and messages, accessed via Telegram from wherever you are.
+Clovis is the alternative: the same concept, but self-hosted, small, and built on Claude Code. You own the container, the credentials never leave your machine, and everything the agent does is visible in git history.
+
+**Goals:**
+
+- **Easy, reproducible setup** — clone, run `setup.sh`, and have a working agent in minutes
+- **Commonly used tools** — first-class integrations with Gmail, Todoist, WhatsApp, Google Calendar, and others
+- **Granular access control** — each integration can be restricted to read-only, so the agent can read your emails without being able to send them, read your contacts without messaging anyone, and so on. You decide what it can touch.
 
 > **Compliance note:** Clovis is designed for personal use. If you are considering using it in a work context, your organization may have data governance policies, corporate IT requirements, or regulatory obligations (GDPR, HIPAA, SOC 2, etc.) that govern what tools can access company data. Evaluate accordingly — personal and professional contexts carry very different rules.
 
