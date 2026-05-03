@@ -203,4 +203,6 @@ docker compose run --rm agent   # interactive session (first-time wizard, pairin
 docker compose up -d            # start in background
 docker compose logs -f          # follow logs
 docker compose down             # stop (state preserved in ./data/)
+docker compose exec agent sh    # open a shell inside the running container
+docker compose run --rm agent sh  # open a shell in a new container (without starting the agent)
 ```
