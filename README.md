@@ -16,7 +16,7 @@ Clovis is the alternative: the same concept, but self-hosted, small, and built o
 
 **Where it's going:**
 
-- **Easy, reproducible setup** — clone, run `setup.sh`, and have a working agent in minutes ✓
+- **Easy, reproducible setup** — copy `docker-compose.yml`, fill in `.env`, and have a working agent in minutes ✓
 - **MCP tool integrations** — Gmail, Todoist, WhatsApp, Google Calendar, and others will be added incrementally as MCP servers
 - **Granular access control** — each MCP tool restricted to read-only by default, so the agent can read your emails without being able to send them, read your calendar without creating events. You decide what it can touch.
 
@@ -45,38 +45,53 @@ The container installs Claude Code and starts it with the `--channels` flag, loa
 
 ## Setup
 
-### 1. Clone this repo
+### 1. Create a working directory
 
 ```bash
-git clone https://github.com/thiagob/claude-clovis.git
-cd claude-clovis
+mkdir clovis && cd clovis
 ```
 
-### 2. Run setup
+### 2. Get `docker-compose.yml`
+
+Download it from this repo:
 
 ```bash
-./setup.sh
+curl -fsSL https://raw.githubusercontent.com/thiagob/claude-clovis/main/docker-compose.yml -o docker-compose.yml
 ```
 
-The script prompts for the bot name, creates all required directories and files with correct permissions, and generates a `.env` from the example.
+### 3. Create the data layout
 
-### 3. Set up the workspace
+```bash
+mkdir -p data/config data/workspace
+touch data/claude.json
+sudo chown -R 1001:1001 data/
+```
 
-Create `clovis-workspace` on GitHub, then clone it into `./data/workspace/`:
+`data/claude.json` must be created as a file before the first run — Docker would otherwise create it as a directory, which breaks Claude Code.
+
+### 4. Set up the workspace
+
+If you have an existing repo, clone it:
 
 ```bash
 git clone https://github.com/<your-username>/clovis-workspace.git data/workspace
 ```
 
-For Clovis to push changes, set `GITHUB_TOKEN` in `.env` with a GitHub personal access token — it is already wired into the container and configured for git authentication at startup.
+Otherwise, initialise a fresh one:
 
-### 4. Fill in `.env`
+```bash
+git -C data/workspace init
+```
+
+### 5. Create `.env`
 
 ```env
 BOT_NAME=clovis
 CLAUDE_CODE_OAUTH_TOKEN="your-claude-oauth-token"
-GITHUB_TOKEN=your-github-pat
+TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
 ```
+
+Create a bot and get its token from [@BotFather](https://t.me/BotFather) on Telegram (`/newbot`).
 
 To get a long-lived OAuth token, run on a machine where you are already logged into Claude Code:
 
@@ -86,10 +101,9 @@ claude setup-token
 
 > Always wrap `CLAUDE_CODE_OAUTH_TOKEN` in double quotes — the token may contain a `#` which `.env` parsers treat as a comment delimiter, silently truncating the value.
 
-### 5. Build and run the first-time wizard
+### 6. First-time wizard
 
 ```bash
-docker compose build
 docker compose run --rm agent
 ```
 
@@ -99,20 +113,17 @@ On first start Claude Code will:
 3. Show a URL to complete OAuth in your browser
 4. Show a theme/onboarding wizard — complete it fully before exiting
 
-Once inside, install and configure the Telegram plugin:
+Once inside, install the Telegram plugin:
 
 ```
 /plugin install telegram@claude-plugins-official
-/telegram:configure <your-botfather-token>
 ```
 
-Exit with Ctrl+C, then start the container in the background:
+> If you set `TELEGRAM_BOT_TOKEN` in `.env`, the plugin picks it up automatically and no further configuration is needed. If you skipped that env var, run `/telegram:configure <your-botfather-token>` before exiting.
 
-```bash
-docker compose up -d
-```
+Exit with Ctrl+C.
 
-### 6. Pair your Telegram account and lock down access
+### 7. Pair your Telegram account and lock down access
 
 Open Telegram and send any message to your bot. It will reply with a pairing code.
 
@@ -135,7 +146,7 @@ See the [official channels documentation](https://code.claude.com/docs/en/channe
 
 Exit with Ctrl+C. All state is saved to `./data/` and persists across restarts.
 
-### 7. Run in the background
+### 8. Run in the background
 
 ```bash
 docker compose up -d
@@ -143,13 +154,32 @@ docker compose up -d
 
 Open Telegram and message your bot. Clovis will respond as if you were using Claude Code in a terminal, with full access to the workspace repo.
 
+## Development
+
+To modify the container itself, clone the repo and use `setup.sh` to automate steps 3 and 5 above:
+
+### 1. Clone this repo
+
+```bash
+git clone https://github.com/thiagob/claude-clovis.git
+cd claude-clovis
+```
+
+### 2. Run setup
+
+```bash
+./setup.sh
+```
+
+The script prompts for bot name and Telegram token, creates the data layout, sets ownership to UID 1001, and scaffolds `.env`. Then continue from step 4 (set up the workspace) and fill in the remaining `.env` values.
+
 ## Configuration
 
 | Variable | Required | Description |
 |---|---|---|
 | `BOT_NAME` | Yes | Agent name — sets the Docker container name to `claude-<name>` |
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Long-lived auth token from `claude setup-token` |
-| `GITHUB_TOKEN` | No | GitHub PAT for Clovis to push to the workspace repo |
+| `TELEGRAM_BOT_TOKEN` | Yes | Bot token from @BotFather |
 | `TZ` | No | Container timezone. Defaults to `America/Sao_Paulo` |
 
 ### Volumes
@@ -160,7 +190,7 @@ Open Telegram and message your bot. Clovis will respond as if you were using Cla
 | `./data/claude.json` | `/home/claude/.claude.json` | Wizard state, theme preference |
 | `./data/workspace` | `/workspace` | The workspace repo Clovis operates on |
 
-> `./data/claude.json` must exist as a **file** before the first run — the setup script handles this. If Docker created it as a directory, remove it and re-run `setup.sh`.
+> `./data/claude.json` must exist as a **file** before the first run — Docker creates missing bind-mount targets as directories, which breaks Claude Code. Step 3 above handles this with `touch`.
 
 ## Commands
 
