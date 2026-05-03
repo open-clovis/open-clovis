@@ -71,16 +71,16 @@ sudo chown -R 1001:1001 data/
 
 ### 4. Set up the workspace
 
-If you have an existing repo, clone it:
-
-```bash
-git clone https://github.com/<your-username>/clovis-workspace.git data/workspace
-```
-
-Otherwise, initialise a fresh one:
+To start fresh:
 
 ```bash
 git -C data/workspace init
+```
+
+Or if you have an existing repo, clone it instead:
+
+```bash
+git clone https://github.com/<your-username>/clovis-workspace.git data/workspace
 ```
 
 ### 5. Create `.env`
