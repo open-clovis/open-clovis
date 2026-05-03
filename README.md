@@ -89,9 +89,12 @@ git clone https://github.com/<your-username>/clovis-workspace.git data/workspace
 BOT_NAME=clovis
 CLAUDE_CODE_OAUTH_TOKEN="your-claude-oauth-token"
 TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
+GITHUB_TOKEN=your-github-pat
 ```
 
 Create a bot and get its token from [@BotFather](https://t.me/BotFather) on Telegram (`/newbot`).
+
+`GITHUB_TOKEN` is optional — only needed for Clovis to push commits. Create a token with `repo` scope at [github.com/settings/tokens](https://github.com/settings/tokens).
 
 To get a long-lived OAuth token, run on a machine where you are already logged into Claude Code:
 
@@ -180,6 +183,7 @@ The script prompts for bot name and Telegram token, creates the data layout, set
 | `BOT_NAME` | Yes | Agent name — sets the Docker container name to `claude-<name>` |
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Long-lived auth token from `claude setup-token` |
 | `TELEGRAM_BOT_TOKEN` | Yes | Bot token from @BotFather |
+| `GITHUB_TOKEN` | No | GitHub PAT ([create one](https://github.com/settings/tokens)) — enables `git push` from the workspace |
 | `TZ` | No | Container timezone. Defaults to `America/Sao_Paulo` |
 
 ### Volumes
