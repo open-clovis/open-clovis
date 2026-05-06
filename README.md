@@ -87,6 +87,7 @@ BOT_NAME=clovis
 CLAUDE_CODE_OAUTH_TOKEN="your-claude-oauth-token"
 TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
 GITHUB_TOKEN=your-github-pat
+GOG_KEYRING_PASSWORD=your-random-secret
 ```
 
 Create a bot and get its token from [@BotFather](https://t.me/BotFather) on Telegram (`/newbot`).
@@ -174,7 +175,41 @@ The script prompts for bot name and Telegram token, creates the data layout, set
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Long-lived auth token from `claude setup-token` |
 | `TELEGRAM_BOT_TOKEN` | Yes | Bot token from @BotFather |
 | `GITHUB_TOKEN` | No | GitHub PAT ([create one](https://github.com/settings/tokens)) — enables `git push` from the workspace |
+| `GOG_KEYRING_PASSWORD` | No | Encrypts gogcli OAuth refresh tokens stored in `data/workspace/.config/gogcli/` — required if you use gogcli |
 | `TZ` | No | Container timezone. Defaults to `America/Sao_Paulo` |
+
+### gogcli — Google Workspace access (optional)
+
+The image ships [gogcli](https://gogcli.sh/) — a single binary covering Gmail, Calendar, Drive, Docs, Sheets, and more. It is opt-in: no credentials are required to run the agent.
+
+To enable it, complete a one-time auth setup:
+
+**1. Create an OAuth client in Google Cloud Console**
+
+- Create a project, enable the APIs you want, configure a consent screen, and download a Desktop app OAuth client JSON.
+
+**2. Register the client and authorize your account**
+
+```bash
+# Copy the client JSON into the container's config dir
+docker compose run --rm \
+  -v /path/to/client_secret_*.json:/tmp/client.json \
+  agent gog auth credentials /tmp/client.json
+
+# Authorize — --manual gives you a URL to open in a browser, no browser inside the container needed
+docker compose run --rm agent \
+  gog auth add you@gmail.com --services gmail,calendar,drive --manual
+```
+
+**3. Set `GOG_KEYRING_PASSWORD` in `.env`**
+
+gogcli encrypts its refresh tokens using the file keyring backend (required in Docker — no OS keyring available). Pick any random secret:
+
+```env
+GOG_KEYRING_PASSWORD=some-random-secret
+```
+
+Tokens are stored in `./data/workspace/.config/gogcli/` and persist across container restarts via the existing volume mount.
 
 ### Volumes
 
