@@ -31,7 +31,7 @@ if [ -n "${GOG_GOOGLE_ACCOUNT:-}" ]; then
   if ! gog auth list 2>/dev/null | grep -qF "${GOG_GOOGLE_ACCOUNT}"; then
     echo ""
     echo "gogcli: no token found for ${GOG_GOOGLE_ACCOUNT}."
-    echo "Run once to authorize (opens a browser URL to paste):"
+    echo "Run once to authorize (visit the printed URL, then paste the redirect URL back):"
     echo "  docker compose run --rm agent gog auth add ${GOG_GOOGLE_ACCOUNT} --services gmail,calendar,drive --manual"
     echo ""
   fi

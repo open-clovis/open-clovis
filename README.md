@@ -179,13 +179,32 @@ The script prompts for bot name and Telegram token, creates the data layout, set
 | `GOG_GOOGLE_ACCOUNT` | No | Your Google email — entrypoint prints the auth command when no token exists yet |
 | `TZ` | No | Container timezone. Defaults to `America/Sao_Paulo` |
 
-### gogcli — Google Workspace access (optional)
+### Volumes
+
+| Host path | Container path | Purpose |
+|---|---|---|
+| `./data/workspace` | `/home/claude` | Workspace repo Clovis operates on — `.claude/` config and `.claude.json` live here too, gitignored automatically |
+
+## Commands
+
+```bash
+docker compose run --rm agent     # interactive session (first-time wizard, pairing) — runs entrypoint.sh
+docker compose up -d              # start in background
+docker compose logs -f            # follow logs
+docker compose down               # stop (state preserved in ./data/)
+docker compose exec agent sh      # shell into the running container (entrypoint already ran — git credentials and gogcli are set up)
+docker compose run --rm agent sh  # raw shell in a new container — bypasses entrypoint.sh (no git credentials, no gogcli setup)
+```
+
+## Google Workspace (gogcli) — experimental
+
+> **This integration is under active development.** Expect rough edges.
 
 The image ships [gogcli](https://gogcli.sh/) — a single binary covering Gmail, Calendar, Drive, Docs, Sheets, and more. It is opt-in: no credentials are required to run the agent.
 
 To enable it, complete a one-time auth setup:
 
-**1. Create an OAuth client in Google Cloud Console**
+### 1. Create an OAuth client in Google Cloud Console
 
 1. Go to [console.cloud.google.com](https://console.cloud.google.com/) and create a new project (or reuse one).
 2. Enable the APIs you want — e.g. [Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com), [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com), [Google Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com).
@@ -193,7 +212,7 @@ To enable it, complete a one-time auth setup:
 4. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**: choose **Desktop app**, name it, and click **Create**.
 5. Click **Download JSON** — you'll get a file named `client_secret_<id>.json`. Keep it private.
 
-**2. Drop the client JSON into the workspace and set your email**
+### 2. Drop the client JSON into the workspace and set your email
 
 ```bash
 cp client_secret_*.json ./data/workspace/
@@ -208,31 +227,14 @@ GOG_GOOGLE_ACCOUNT=you@gmail.com
 
 On next start, `entrypoint.sh` registers the credentials automatically and deletes the file.
 
-**3. Complete the one-time account OAuth**
+### 3. Complete the one-time account OAuth
 
 The entrypoint will print this if no token exists yet:
 
 ```
 gogcli: no token found for you@gmail.com.
-Run once to authorize (opens a browser URL to paste):
+Run once to authorize (visit the printed URL, then paste the redirect URL back):
   docker compose run --rm agent gog auth add you@gmail.com --services gmail,calendar,drive --manual
 ```
 
-Run that command, open the printed URL in your browser, and paste the code back. The encrypted refresh token is saved to `./data/workspace/.config/gogcli/` and persists across restarts.
-
-### Volumes
-
-| Host path | Container path | Purpose |
-|---|---|---|
-| `./data/workspace` | `/home/claude` | Workspace repo Clovis operates on — `.claude/` config and `.claude.json` live here too, gitignored automatically |
-
-## Commands
-
-```bash
-docker compose run --rm agent   # interactive session (first-time wizard, pairing)
-docker compose up -d            # start in background
-docker compose logs -f          # follow logs
-docker compose down             # stop (state preserved in ./data/)
-docker compose exec agent sh    # open a shell inside the running container
-docker compose run --rm agent sh  # open a shell in a new container (without starting the agent)
-```
+Run that command, open the printed URL in your browser, and authorize the app. The browser will redirect to `http://127.0.0.1:...` — that page won't load, which is expected. Copy the full URL from the address bar and paste it into the terminal when prompted. The encrypted refresh token is saved to `./data/workspace/.config/gogcli/` and persists across restarts.
