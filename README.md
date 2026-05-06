@@ -176,6 +176,7 @@ The script prompts for bot name and Telegram token, creates the data layout, set
 | `TELEGRAM_BOT_TOKEN` | Yes | Bot token from @BotFather |
 | `GITHUB_TOKEN` | No | GitHub PAT ([create one](https://github.com/settings/tokens)) — enables `git push` from the workspace |
 | `GOG_KEYRING_PASSWORD` | No | Encrypts gogcli OAuth refresh tokens stored in `data/workspace/.config/gogcli/` — required if you use gogcli |
+| `GOG_GOOGLE_ACCOUNT` | No | Your Google email — entrypoint prints the auth command when no token exists yet |
 | `TZ` | No | Container timezone. Defaults to `America/Sao_Paulo` |
 
 ### gogcli — Google Workspace access (optional)
@@ -186,30 +187,38 @@ To enable it, complete a one-time auth setup:
 
 **1. Create an OAuth client in Google Cloud Console**
 
-- Create a project, enable the APIs you want, configure a consent screen, and download a Desktop app OAuth client JSON.
+1. Go to [console.cloud.google.com](https://console.cloud.google.com/) and create a new project (or reuse one).
+2. Enable the APIs you want — e.g. [Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com), [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com), [Google Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com).
+3. Go to **APIs & Services → OAuth consent screen**: choose **External**, fill in the app name and your email, add the scopes you enabled, then add your Gmail address as a test user.
+4. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**: choose **Desktop app**, name it, and click **Create**.
+5. Click **Download JSON** — you'll get a file named `client_secret_<id>.json`. Keep it private.
 
-**2. Register the client and authorize your account**
+**2. Drop the client JSON into the workspace and set your email**
 
 ```bash
-# Copy the client JSON into the container's config dir
-docker compose run --rm \
-  -v /path/to/client_secret_*.json:/tmp/client.json \
-  agent gog auth credentials /tmp/client.json
-
-# Authorize — --manual gives you a URL to open in a browser, no browser inside the container needed
-docker compose run --rm agent \
-  gog auth add you@gmail.com --services gmail,calendar,drive --manual
+cp client_secret_*.json ./data/workspace/
 ```
 
-**3. Set `GOG_KEYRING_PASSWORD` in `.env`**
-
-gogcli encrypts its refresh tokens using the file keyring backend (required in Docker — no OS keyring available). Pick any random secret:
+Add to `.env`:
 
 ```env
 GOG_KEYRING_PASSWORD=some-random-secret
+GOG_GOOGLE_ACCOUNT=you@gmail.com
 ```
 
-Tokens are stored in `./data/workspace/.config/gogcli/` and persist across container restarts via the existing volume mount.
+On next start, `entrypoint.sh` registers the credentials automatically and deletes the file.
+
+**3. Complete the one-time account OAuth**
+
+The entrypoint will print this if no token exists yet:
+
+```
+gogcli: no token found for you@gmail.com.
+Run once to authorize (opens a browser URL to paste):
+  docker compose run --rm agent gog auth add you@gmail.com --services gmail,calendar,drive --manual
+```
+
+Run that command, open the printed URL in your browser, and paste the code back. The encrypted refresh token is saved to `./data/workspace/.config/gogcli/` and persists across restarts.
 
 ### Volumes
 
