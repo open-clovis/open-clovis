@@ -5,6 +5,16 @@ set -e
 [ -d .claude.json ] && rm -rf .claude.json
 [ -f .claude.json ] || echo '{}' > .claude.json
 
+# Pre-accept the trust dialog for this workspace so Claude doesn't prompt on every start
+node -e "
+  const fs = require('fs'), f = '.claude.json';
+  const d = JSON.parse(fs.readFileSync(f, 'utf8'));
+  d.projects = d.projects || {};
+  d.projects['/home/clovis'] = d.projects['/home/clovis'] || {};
+  d.projects['/home/clovis'].hasTrustDialogAccepted = true;
+  fs.writeFileSync(f, JSON.stringify(d));
+"
+
 if [ ! -f .gitignore ] || ! grep -qF '.claude/' .gitignore; then
   printf '\n# Claude Code internals\n.claude/\n.claude.json\n' >> .gitignore
 fi
