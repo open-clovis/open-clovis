@@ -14,7 +14,7 @@ Two-repo model:
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Builds the image: node:22, Bun, Claude Code, gh CLI |
+| `Dockerfile` | Builds the image: node:22, Bun, Claude Code, gh CLI, gogcli |
 | `entrypoint.sh` | Registers plugin marketplace, installs Telegram plugin, configures git credentials, starts `claude` |
 | `docker-compose.yml` | Single service `agent`, container named `open-clovis-${BOT_NAME}` |
 | `setup.sh` | First-time setup: creates `data/`, sets UID 1001 ownership, bootstraps `.env` |

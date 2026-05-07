@@ -33,7 +33,7 @@ clovis-workspace    ← the workspace: git repo Clovis reads and writes
 
 **`open-clovis`** (this repo) is the environment — it defines how the agent runs, how it authenticates, and how it connects to Telegram. You manage this from the host.
 
-**`clovis-workspace`** is where Clovis does its work — a regular git repo mounted into the container at `/home/claude`. Clovis can read files, write code, make commits, and push. You review what it did via git history.
+**`clovis-workspace`** is where Clovis does its work — a regular git repo mounted into the container at `/home/clovis`. Clovis can read files, write code, make commits, and push. You review what it did via git history.
 
 This separation keeps infra concerns out of the workspace and gives Clovis a clean, auditable place to operate.
 
@@ -87,6 +87,7 @@ BOT_NAME=clovis
 CLAUDE_CODE_OAUTH_TOKEN="your-claude-oauth-token"
 TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
 GITHUB_TOKEN=your-github-pat
+GOG_KEYRING_PASSWORD=your-random-secret
 ```
 
 Create a bot and get its token from [@BotFather](https://t.me/BotFather) on Telegram (`/newbot`).
@@ -118,28 +119,15 @@ Exit with Ctrl+C.
 
 ### 7. Pair your Telegram account and lock down access
 
-Open Telegram and send any message to your bot. It will reply with a pairing code.
+Message your bot on Telegram to get a pairing code, then follow the [Telegram setup guide](docs/telegram.md).
 
-Attach to the running container and open a Claude Code session:
+### 8. Google Workspace (gogcli)
 
-```bash
-docker compose run --rm agent
-```
+The image ships [gogcli](https://gogcli.sh/) for Gmail, Calendar, Drive, and more. It is opt-in — no credentials are required to run the agent.
 
-Once inside the Claude Code prompt (not your bash shell), run:
+See [Google Workspace setup](docs/google-workspace.md) for the full one-time auth walkthrough.
 
-```
-/telegram:access pair <code>
-/telegram:access policy allowlist
-```
-
-The allowlist is critical: without it, anyone who finds your bot's username can send it messages and interact with your agent. Once enabled, only paired accounts are allowed — everyone else is silently dropped.
-
-See the [Claude Code documentation](https://code.claude.com/docs/en/overview) for full details on how the sender allowlist works.
-
-Exit with Ctrl+C. All state is saved to `./data/` and persists across restarts.
-
-### 8. Run in the background
+### 9. Run in the background
 
 ```bash
 docker compose up -d
@@ -149,13 +137,22 @@ Open Telegram and message your bot. Clovis will respond as if you were using Cla
 
 ## Development
 
-To modify the container itself, clone the repo and use `setup.sh` to automate steps 3 and 5 above:
+To modify the container itself, clone the repo and use `setup.sh` to automate steps 3 and 5 above. Since `docker-compose.yml` builds from the GitHub URL, override the build context locally with:
 
 ### 1. Clone this repo
 
 ```bash
 git clone https://github.com/open-clovis/open-clovis.git
 cd open-clovis
+```
+
+Override `docker-compose.yml` with a local `docker-compose.override.yml`:
+
+```yaml
+services:
+  agent:
+    build:
+      context: .
 ```
 
 ### 2. Run setup
@@ -174,21 +171,24 @@ The script prompts for bot name and Telegram token, creates the data layout, set
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Long-lived auth token from `claude setup-token` |
 | `TELEGRAM_BOT_TOKEN` | Yes | Bot token from @BotFather |
 | `GITHUB_TOKEN` | No | GitHub PAT ([create one](https://github.com/settings/tokens)) — enables `git push` from the workspace |
+| `GOG_KEYRING_PASSWORD` | No | Encrypts gogcli OAuth refresh tokens stored in `data/workspace/.config/gogcli/` — required if you use gogcli |
+| `GOG_GOOGLE_ACCOUNT` | No | Your Google email — entrypoint prints the auth command when no token exists yet |
 | `TZ` | No | Container timezone. Defaults to `America/Sao_Paulo` |
 
 ### Volumes
 
 | Host path | Container path | Purpose |
 |---|---|---|
-| `./data/workspace` | `/home/claude` | Workspace repo Clovis operates on — `.claude/` config and `.claude.json` live here too, gitignored automatically |
+| `./data/workspace` | `/home/clovis` | Workspace repo Clovis operates on — `.claude/` config and `.claude.json` live here too, gitignored automatically |
 
 ## Commands
 
 ```bash
-docker compose run --rm agent   # interactive session (first-time wizard, pairing)
-docker compose up -d            # start in background
-docker compose logs -f          # follow logs
-docker compose down             # stop (state preserved in ./data/)
-docker compose exec agent sh    # open a shell inside the running container
-docker compose run --rm agent sh  # open a shell in a new container (without starting the agent)
+docker compose run --rm agent     # interactive session (first-time wizard, pairing) — runs entrypoint.sh
+docker compose up -d              # start in background
+docker compose logs -f            # follow logs
+docker compose down               # stop (state preserved in ./data/)
+docker compose exec agent sh      # shell into the running container (entrypoint already ran — git credentials and gogcli are set up)
+docker compose run --rm agent sh  # raw shell in a new container — bypasses entrypoint.sh (no git credentials, no gogcli setup)
 ```
+

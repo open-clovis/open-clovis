@@ -1,6 +1,8 @@
 services:
   agent:
-    build: .
+    build:
+      context: https://github.com/open-clovis/open-clovis.git
+    #build: .
     container_name: open-clovis-${BOT_NAME:-clovis}
     restart: unless-stopped
     stdin_open: true       # Claude expects a TTY-ish stdin
@@ -12,3 +14,6 @@ services:
       CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GOG_KEYRING_BACKEND: file
+      GOG_KEYRING_PASSWORD: ${GOG_KEYRING_PASSWORD:-}
+      GOG_GOOGLE_ACCOUNT: ${GOG_GOOGLE_ACCOUNT:-}
