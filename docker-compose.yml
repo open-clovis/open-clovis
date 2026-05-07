@@ -1,6 +1,7 @@
 services:
   agent:
-    build: .
+    build:
+      context: https://github.com/open-clovis/open-clovis.git
     container_name: open-clovis-${BOT_NAME:-clovis}
     restart: unless-stopped
     stdin_open: true       # Claude expects a TTY-ish stdin

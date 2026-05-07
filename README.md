@@ -33,7 +33,7 @@ clovis-workspace    ← the workspace: git repo Clovis reads and writes
 
 **`open-clovis`** (this repo) is the environment — it defines how the agent runs, how it authenticates, and how it connects to Telegram. You manage this from the host.
 
-**`clovis-workspace`** is where Clovis does its work — a regular git repo mounted into the container at `/home/claude`. Clovis can read files, write code, make commits, and push. You review what it did via git history.
+**`clovis-workspace`** is where Clovis does its work — a regular git repo mounted into the container at `/home/clovis`. Clovis can read files, write code, make commits, and push. You review what it did via git history.
 
 This separation keeps infra concerns out of the workspace and gives Clovis a clean, auditable place to operate.
 
@@ -119,28 +119,15 @@ Exit with Ctrl+C.
 
 ### 7. Pair your Telegram account and lock down access
 
-Open Telegram and send any message to your bot. It will reply with a pairing code.
+Message your bot on Telegram to get a pairing code, then follow the [Telegram setup guide](docs/telegram.md).
 
-Attach to the running container and open a Claude Code session:
+### 8. Google Workspace (gogcli)
 
-```bash
-docker compose run --rm agent
-```
+The image ships [gogcli](https://gogcli.sh/) for Gmail, Calendar, Drive, and more. It is opt-in — no credentials are required to run the agent.
 
-Once inside the Claude Code prompt (not your bash shell), run:
+See [Google Workspace setup](docs/google-workspace.md) for the full one-time auth walkthrough.
 
-```
-/telegram:access pair <code>
-/telegram:access policy allowlist
-```
-
-The allowlist is critical: without it, anyone who finds your bot's username can send it messages and interact with your agent. Once enabled, only paired accounts are allowed — everyone else is silently dropped.
-
-See the [Claude Code documentation](https://code.claude.com/docs/en/overview) for full details on how the sender allowlist works.
-
-Exit with Ctrl+C. All state is saved to `./data/` and persists across restarts.
-
-### 8. Run in the background
+### 9. Run in the background
 
 ```bash
 docker compose up -d
@@ -150,13 +137,22 @@ Open Telegram and message your bot. Clovis will respond as if you were using Cla
 
 ## Development
 
-To modify the container itself, clone the repo and use `setup.sh` to automate steps 3 and 5 above:
+To modify the container itself, clone the repo and use `setup.sh` to automate steps 3 and 5 above. Since `docker-compose.yml` builds from the GitHub URL, override the build context locally with:
 
 ### 1. Clone this repo
 
 ```bash
 git clone https://github.com/open-clovis/open-clovis.git
 cd open-clovis
+```
+
+Override `docker-compose.yml` with a local `docker-compose.override.yml`:
+
+```yaml
+services:
+  agent:
+    build:
+      context: .
 ```
 
 ### 2. Run setup
@@ -183,7 +179,7 @@ The script prompts for bot name and Telegram token, creates the data layout, set
 
 | Host path | Container path | Purpose |
 |---|---|---|
-| `./data/workspace` | `/home/claude` | Workspace repo Clovis operates on — `.claude/` config and `.claude.json` live here too, gitignored automatically |
+| `./data/workspace` | `/home/clovis` | Workspace repo Clovis operates on — `.claude/` config and `.claude.json` live here too, gitignored automatically |
 
 ## Commands
 
@@ -196,45 +192,3 @@ docker compose exec agent sh      # shell into the running container (entrypoint
 docker compose run --rm agent sh  # raw shell in a new container — bypasses entrypoint.sh (no git credentials, no gogcli setup)
 ```
 
-## Google Workspace (gogcli) — experimental
-
-> **This integration is under active development.** Expect rough edges.
-
-The image ships [gogcli](https://gogcli.sh/) — a single binary covering Gmail, Calendar, Drive, Docs, Sheets, and more. It is opt-in: no credentials are required to run the agent.
-
-To enable it, complete a one-time auth setup:
-
-### 1. Create an OAuth client in Google Cloud Console
-
-1. Go to [console.cloud.google.com](https://console.cloud.google.com/) and create a new project (or reuse one).
-2. Enable the APIs you want — e.g. [Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com), [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com), [Google Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com).
-3. Go to **APIs & Services → OAuth consent screen**: choose **External**, fill in the app name and your email, add the scopes you enabled, then add your Gmail address as a test user.
-4. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**: choose **Desktop app**, name it, and click **Create**.
-5. Click **Download JSON** — you'll get a file named `client_secret_<id>.json`. Keep it private.
-
-### 2. Drop the client JSON into the workspace and set your email
-
-```bash
-cp client_secret_*.json ./data/workspace/
-```
-
-Add to `.env`:
-
-```env
-GOG_KEYRING_PASSWORD=some-random-secret
-GOG_GOOGLE_ACCOUNT=you@gmail.com
-```
-
-On next start, `entrypoint.sh` registers the credentials automatically and deletes the file.
-
-### 3. Complete the one-time account OAuth
-
-The entrypoint will print this if no token exists yet:
-
-```
-gogcli: no token found for you@gmail.com.
-Run once to authorize (visit the printed URL, then paste the redirect URL back):
-  docker compose run --rm agent gog auth add you@gmail.com --services gmail,calendar,drive --manual
-```
-
-Run that command, open the printed URL in your browser, and authorize the app. The browser will redirect to `http://127.0.0.1:...` — that page won't load, which is expected. Copy the full URL from the address bar and paste it into the terminal when prompted. The encrypted refresh token is saved to `./data/workspace/.config/gogcli/` and persists across restarts.

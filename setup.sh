@@ -19,6 +19,12 @@ if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
+# Generate a random keyring password if not already set
+gog_pw=$(openssl rand -hex 32)
+if grep -q '^GOG_KEYRING_PASSWORD=$' .env; then
+  sed -i "s/^GOG_KEYRING_PASSWORD=.*/GOG_KEYRING_PASSWORD=${gog_pw}/" .env
+fi
+
 # Write bot name into .env
 if grep -q '^BOT_NAME=' .env; then
   sed -i "s/^BOT_NAME=.*/BOT_NAME=${bot_name}/" .env
