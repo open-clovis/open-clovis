@@ -42,6 +42,19 @@ if [ -n "$telegram_token" ]; then
   fi
 fi
 
-echo "Setup complete. Edit .env with your tokens, then run:"
-echo "  docker compose build"
-echo "  docker compose run --rm agent"
+echo ""
+echo "Setup complete."
+
+read -rp "Build the Docker image now? [Y/n] " build_now
+build_now="${build_now:-Y}"
+if [[ "$build_now" =~ ^[Yy]$ ]]; then
+  docker compose build
+  echo ""
+  echo "Build done. Run the first-time wizard with:"
+  echo "  docker compose run --rm agent"
+else
+  echo ""
+  echo "When ready, run:"
+  echo "  docker compose build"
+  echo "  docker compose run --rm agent"
+fi

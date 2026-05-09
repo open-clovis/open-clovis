@@ -25,9 +25,12 @@ if [ -n "${GITHUB_TOKEN:-}" ]; then
   export GH_TOKEN="$GITHUB_TOKEN"
 fi
 
-# Register marketplace and install Telegram plugin (both idempotent — no-op if already present)
-claude plugins marketplace add anthropics/claude-plugins-official || true
-claude plugins install telegram@claude-plugins-official || true
+# Install Telegram plugin only on first run — re-installing wipes channel config
+_plugins_file=".claude/plugins/installed_plugins.json"
+if [ ! -f "$_plugins_file" ] || ! grep -qF '"telegram@claude-plugins-official"' "$_plugins_file"; then
+  claude plugins marketplace add anthropics/claude-plugins-official || true
+  claude plugins install telegram@claude-plugins-official || true
+fi
 
 # gogcli: register OAuth client if a Google OAuth JSON was dropped into the workspace root
 for _gog_client in "${HOME}"/client_secret_*.json; do
