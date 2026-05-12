@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Two-repo model:
 - `open-clovis` — container, auth, Telegram config (this repo, managed from the host)
-- `clovis-workspace` — git repo Claude operates on (mounted at `/home/clovis` inside the container)
+- `clovis-workspace` — git repo Claude operates on (mounted at `/home/clovis/workspace` inside the container)
 
 ## Key files
 
@@ -18,7 +18,7 @@ Two-repo model:
 | `entrypoint.sh` | Registers plugin marketplace, installs Telegram plugin, configures git credentials, starts `claude` |
 | `docker-compose.yml` | Single service `agent`, container named `open-clovis-${BOT_NAME}` |
 | `setup.sh` | First-time setup: creates `data/`, sets UID 1001 ownership, bootstraps `.env` |
-| `reset.sh` | Wipes `.claude/` and `.claude.json` from `data/workspace` for a clean re-run |
+| `reset.sh` | Wipes `.claude/` and `.claude.json` from `data/` for a clean re-run |
 
 ## Common commands
 
@@ -35,9 +35,10 @@ docker compose logs -f            # follow logs
 
 | Host path | Container path | Notes |
 |---|---|---|
-| `./data/workspace` | `/home/clovis` | Workspace repo — also holds `.claude/` config and `.claude.json` (gitignored) |
+| `./data` | `/home/clovis` | Home dir — holds `.claude/` config and `.claude.json` |
+| `./data/workspace` | `/home/clovis/workspace` | Workspace repo Claude operates on |
 
-`data/` is gitignored. `.claude.json` and `.gitignore` are created automatically by `entrypoint.sh` on first start.
+`data/` is gitignored. `.claude.json` is created automatically by `entrypoint.sh` on first start.
 
 ## Container internals
 

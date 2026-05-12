@@ -1,19 +1,20 @@
 services:
   agent:
-    build:
-      context: https://github.com/open-clovis/open-clovis.git
-    #build: .
+    #build:
+    #  context: https://github.com/open-clovis/open-clovis.git
+    build: .
     container_name: open-clovis-${BOT_NAME:-clovis}
     restart: unless-stopped
     stdin_open: true       # Claude expects a TTY-ish stdin
     tty: true              # without these the process exits immediately
     volumes:
-      - ./data/workspace:/home/clovis  # home dir = workspace repo (holds .claude/ config + .claude.json)
+      - ./data:/home/clovis  # home dir — holds .claude/ config and .claude.json
     environment:
       TZ: America/Sao_Paulo
+      HOME: /home/clovis
       CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-      GOG_KEYRING_BACKEND: file
-      GOG_KEYRING_PASSWORD: ${GOG_KEYRING_PASSWORD:-}
-      GOG_GOOGLE_ACCOUNT: ${GOG_GOOGLE_ACCOUNT:-}
+      #GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      #GOG_KEYRING_BACKEND: file
+      #GOG_KEYRING_PASSWORD: ${GOG_KEYRING_PASSWORD:-}
+      #GOG_GOOGLE_ACCOUNT: ${GOG_GOOGLE_ACCOUNT:-}
