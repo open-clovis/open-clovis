@@ -16,27 +16,20 @@ RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash \
     && ln -sf /usr/local/bin/bun /usr/bin/bun
 
 # Install gogcli (Google Workspace CLI for the agent)
-RUN set -eux; \
-    GOGCLI_VERSION="0.15.0"; \
-    ARCH="$(dpkg --print-architecture)"; \
-    curl -fsSL \
-      "https://github.com/openclaw/gogcli/releases/download/v${GOGCLI_VERSION}/gogcli_${GOGCLI_VERSION}_linux_${ARCH}.tar.gz" \
-      | tar -xz -C /usr/local/bin gog; \
-    chmod +x /usr/local/bin/gog
+# RUN set -eux; \
+#     GOGCLI_VERSION="0.15.0"; \
+#     ARCH="$(dpkg --print-architecture)"; \
+#     curl -fsSL \
+#       "https://github.com/openclaw/gogcli/releases/download/v${GOGCLI_VERSION}/gogcli_${GOGCLI_VERSION}_linux_${ARCH}.tar.gz" \
+#       | tar -xz -C /usr/local/bin gog; \
+#     chmod +x /usr/local/bin/gog
 
-# Install Claude Code and give the clovis user ownership so it can self-update
-RUN npm install -g @anthropic-ai/claude-code \
-    && chown -R 1001:1001 /usr/local/lib/node_modules/@anthropic-ai \
-    && chown 1001:1001 /usr/local/bin/claude
+RUN npm install -g @anthropic-ai/claude-code
 
-# Run as non-root for safety
-RUN useradd -m -u 1001 clovis
-
-COPY --chown=clovis:clovis entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-USER clovis
-WORKDIR /home/clovis
+WORKDIR /home/clovis/workspace
 
 # tini reaps zombies; Bun spawns subprocesses for the Telegram plugin MCP server
 ENTRYPOINT ["/usr/bin/tini", "--"]
