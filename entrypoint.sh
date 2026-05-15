@@ -36,6 +36,19 @@ if [ -n "${GOOGLE_OAUTH_CLIENT_ID:-}" ] && [ -n "${GOOGLE_OAUTH_CLIENT_SECRET:-}
   uvx workspace-mcp --transport streamable-http &
   _GOOGLE_MCP_PID=$!
   echo "entrypoint: google_workspace_mcp pid=$_GOOGLE_MCP_PID"
+
+  # Register the MCP server in the container's Claude Code settings
+  _SETTINGS="${HOME}/.claude/settings.json"
+  mkdir -p "${HOME}/.claude"
+  [ -f "$_SETTINGS" ] || echo '{}' > "$_SETTINGS"
+  node -e "
+    const fs = require('fs'), f = '$_SETTINGS';
+    const d = JSON.parse(fs.readFileSync(f, 'utf8'));
+    d.mcpServers = d.mcpServers || {};
+    d.mcpServers['workspace-mcp'] = { type: 'http', url: 'http://localhost:8000/mcp' };
+    fs.writeFileSync(f, JSON.stringify(d, null, 2));
+  "
+  echo "entrypoint: registered workspace-mcp in \$_SETTINGS"
 fi
 
 if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
