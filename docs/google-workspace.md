@@ -1,40 +1,44 @@
-# Google Workspace (gogcli) — experimental
+# Google Workspace (Gmail, Calendar)
 
-The image ships [gogcli](https://gogcli.sh/) — a single binary covering Gmail, Calendar, Drive, Docs, Sheets, and more. It is opt-in: no credentials are required to run the agent.
-
-To enable it, complete a one-time auth setup:
+The image ships [workspace-mcp](https://github.com/taylorwilsdon/google_workspace_mcp) — a Google Workspace MCP server covering Gmail, Calendar, Drive, and more. It starts automatically on port 8000 when OAuth credentials are provided.
 
 ## 1. Create an OAuth client in Google Cloud Console
 
-1. Go to [console.cloud.google.com](https://console.cloud.google.com/) and create a new project (or reuse one).
-2. Enable the APIs you want — e.g. [Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com), [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com), [Google Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com).
+1. Go to [console.cloud.google.com](https://console.cloud.google.com/) and create or reuse a project.
+2. Enable the APIs you need: [Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com), [Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com).
 3. Go to **APIs & Services → OAuth consent screen**: choose **External**, fill in the app name and your email, add the scopes you enabled, then add your Gmail address as a test user.
-4. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**: choose **Desktop app**, name it, and click **Create**.
-5. Click **Download JSON** — you'll get a file named `client_secret_<id>.json`. Keep it private.
+4. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**: choose **Web application**, add `http://localhost:8000/oauth2callback` as an Authorized redirect URI.
+5. Copy the **Client ID** and **Client Secret**.
 
-## 2. Drop the client JSON into the workspace and set your email
-
-```bash
-cp client_secret_*.json ./data/workspace/
-```
-
-Add to `.env`:
+## 2. Add credentials to `.env`
 
 ```env
-GOG_KEYRING_PASSWORD=some-random-secret
-GOG_GOOGLE_ACCOUNT=you@gmail.com
+GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=GOCSPX-...
 ```
 
-On next start, `entrypoint.sh` registers the credentials automatically and deletes the file.
+## 3. Restart the container
 
-## 3. Complete the one-time account OAuth
-
-The entrypoint will print this if no token exists yet:
-
-```
-gogcli: no token found for you@gmail.com.
-Run once to authorize (visit the printed URL, then paste the redirect URL back):
-  docker compose run --rm agent gog auth add you@gmail.com --services gmail,calendar,drive --manual
+```bash
+docker compose down && docker compose up -d
 ```
 
-Run that command, open the printed URL in your browser, and authorize the app. The browser will redirect to `http://127.0.0.1:...` — that page won't load, which is expected. Copy the full URL from the address bar and paste it into the terminal when prompted. The encrypted refresh token is saved to `./data/workspace/.config/gogcli/` and persists across restarts.
+The entrypoint starts `workspace-mcp` in the background on port 8000 (bound to `127.0.0.1` only via `docker-compose.yml`).
+
+## 4. Complete the one-time OAuth flow
+
+On first start, open `http://localhost:8000` in your browser. You will be redirected to Google's consent screen. After authorizing, the token is cached and reused on every subsequent start.
+
+## Workspace configuration
+
+The MCP server is pre-configured in `workspace/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "gmail": { "type": "http", "url": "http://localhost:8000/mcp" }
+  }
+}
+```
+
+Claude Code connects to it automatically. Once authorized, you can ask Claude to read emails, manage calendar events, etc.
