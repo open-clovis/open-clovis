@@ -92,6 +92,22 @@ You can ask the Claude instance running in the container to do this for you via 
 
 Claude will edit `workspace/.mcp.json` directly. The change takes effect after `/mcp reset` or a container restart.
 
+## Waha — WhatsApp API
+
+Waha runs as a sidecar container exposing a WhatsApp HTTP API on port 3000.
+
+**UI / Swagger docs:** `http://localhost:3000` (accessible from the host browser)
+
+**Data:** persisted in `./waha-data/` (gitignored).
+
+**Authentication:** set `WAHA_API_KEY` in `.env` to require `X-Api-Key: <key>` on all API calls. Leave blank to disable auth (not recommended in production).
+
+**Connecting WhatsApp:**
+1. Open `http://localhost:3000`
+2. Use the `/api/sessions` endpoint (or Swagger UI) to start a session
+3. Fetch the QR code and scan it with your WhatsApp mobile app
+4. The session persists in `./waha-data/` across restarts
+
 ## Git conventions
 
 - No Claude co-authorship in commits (`attribution.commit: ""` in `.claude/settings.json`).

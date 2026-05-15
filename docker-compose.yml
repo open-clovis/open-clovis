@@ -42,6 +42,25 @@ services:
     networks:
       - clovis-net
 
+  waha:
+    image: devlikeapro/waha
+    container_name: open-clovis-waha-${BOT_NAME:-clovis}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./waha-data:/app/.waha/sessions
+    environment:
+      WHATSAPP_API_KEY: ${WAHA_API_KEY:-}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - clovis-net
+
 networks:
   clovis-net:
     driver: bridge

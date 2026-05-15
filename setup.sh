@@ -49,6 +49,8 @@ prompt_var CLAUDE_CODE_OAUTH_TOKEN "Claude OAuth token (from claude.ai/settings)
 prompt_var TELEGRAM_BOT_TOKEN      "Telegram bot token (from @BotFather, blank to skip)"
 prompt_var GITHUB_TOKEN            "GitHub token (blank to skip)"
 
+prompt_var WAHA_API_KEY             "Waha API key (blank to disable auth)"
+
 generate_if_empty N8N_ENCRYPTION_KEY
 
 echo ""
