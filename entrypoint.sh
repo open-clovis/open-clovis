@@ -20,35 +20,6 @@ if [ -n "${GITHUB_TOKEN:-}" ]; then
   export GH_TOKEN="$GITHUB_TOKEN"
 fi
 
-# Bootstrap .mcp.json in the workspace from N8N_MCP_* env vars.
-# Only creates the file if it doesn't already exist — never overwrites.
-# Each var becomes a server entry: N8N_MCP_GMAIL → "gmail"
-_MCP_FILE="${HOME}/workspace/.mcp.json"
-if [ -d "${HOME}/workspace" ] && [ ! -f "$_MCP_FILE" ] && command -v jq > /dev/null 2>&1; then
-  _tmp_mcp=$(mktemp)
-  echo '{"mcpServers":{}}' > "$_tmp_mcp"
-  env | grep '^N8N_MCP_' | grep -v '^N8N_MCP_TOKEN=' | while IFS='=' read -r _key _url; do
-    [ -z "$_url" ] && continue
-    _name="$(echo "$_key" | sed 's/^N8N_MCP_//' | tr '[:upper:]' '[:lower:]')"
-    _iter=$(mktemp)
-    if [ -n "${N8N_MCP_TOKEN:-}" ]; then
-      jq --arg n "$_name" --arg u "$_url" --arg t "$N8N_MCP_TOKEN" \
-        '.mcpServers[$n] = {"type": "http", "url": $u, "headers": {"Authorization": ("Bearer " + $t)}}' \
-        "$_tmp_mcp" > "$_iter" && mv "$_iter" "$_tmp_mcp"
-    else
-      jq --arg n "$_name" --arg u "$_url" \
-        '.mcpServers[$n] = {"type": "http", "url": $u}' \
-        "$_tmp_mcp" > "$_iter" && mv "$_iter" "$_tmp_mcp"
-    fi
-  done
-  if jq -e '.mcpServers | length > 0' "$_tmp_mcp" > /dev/null 2>&1; then
-    mv "$_tmp_mcp" "$_MCP_FILE"
-    echo "entrypoint: created $_MCP_FILE"
-  else
-    rm -f "$_tmp_mcp"
-  fi
-fi
-
 # Telegram plugin — install once, skip forever after
 # Sentinel lives inside the channels dir so wiping channels/ triggers a clean reinstall.
 _TELEGRAM_SENTINEL="${HOME}/.claude/channels/telegram/.installed"
