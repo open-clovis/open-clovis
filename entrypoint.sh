@@ -30,8 +30,10 @@ if [ -n "${GOOGLE_OAUTH_CLIENT_ID:-}" ] && [ -n "${GOOGLE_OAUTH_CLIENT_SECRET:-}
   echo "entrypoint: starting google_workspace_mcp on port 8000"
   GOOGLE_OAUTH_CLIENT_ID="$GOOGLE_OAUTH_CLIENT_ID" \
   GOOGLE_OAUTH_CLIENT_SECRET="$GOOGLE_OAUTH_CLIENT_SECRET" \
+  MCP_ENABLE_OAUTH21=true \
   WORKSPACE_MCP_STATELESS_MODE=true \
-  uvx workspace-mcp --transport streamable-http --port 8000 &
+  WORKSPACE_MCP_PORT=8000 \
+  uvx workspace-mcp --transport streamable-http &
   _GOOGLE_MCP_PID=$!
   echo "entrypoint: google_workspace_mcp pid=$_GOOGLE_MCP_PID"
 fi
