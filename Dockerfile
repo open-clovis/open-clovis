@@ -1,8 +1,8 @@
 FROM node:22-bookworm-slim
 
-# Bun is required for the Telegram plugin MCP server
+# Bun is required for the Telegram plugin MCP server; python3 for google_workspace_mcp
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        curl ca-certificates git tini unzip \
+        curl ca-certificates git tini unzip python3 python3-venv \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
         | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Bun system-wide
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash \
     && ln -sf /usr/local/bin/bun /usr/bin/bun
+
+# Install uv (Python package manager) for google_workspace_mcp
+RUN curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh
 
 # Install gogcli (Google Workspace CLI for the agent)
 # RUN set -eux; \

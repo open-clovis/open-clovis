@@ -25,6 +25,17 @@ fi
 _TELEGRAM_SENTINEL="${HOME}/.claude/channels/telegram/.installed"
 _TELEGRAM_PLUGIN_DIR="${HOME}/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram"
 
+# Google Workspace MCP — start as a background HTTP sidecar when credentials are present
+if [ -n "${GOOGLE_OAUTH_CLIENT_ID:-}" ] && [ -n "${GOOGLE_OAUTH_CLIENT_SECRET:-}" ]; then
+  echo "entrypoint: starting google_workspace_mcp on port 8000"
+  GOOGLE_OAUTH_CLIENT_ID="$GOOGLE_OAUTH_CLIENT_ID" \
+  GOOGLE_OAUTH_CLIENT_SECRET="$GOOGLE_OAUTH_CLIENT_SECRET" \
+  WORKSPACE_MCP_STATELESS_MODE=true \
+  uvx workspace-mcp --transport streamable-http --port 8000 &
+  _GOOGLE_MCP_PID=$!
+  echo "entrypoint: google_workspace_mcp pid=$_GOOGLE_MCP_PID"
+fi
+
 if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
   if [ ! -f "$_TELEGRAM_SENTINEL" ] || [ ! -d "$_TELEGRAM_PLUGIN_DIR" ]; then
     echo "entrypoint: first run — installing Telegram plugin"

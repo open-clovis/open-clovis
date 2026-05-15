@@ -2,5 +2,11 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "mcpServers": {
+    "workspace-mcp": {
+      "type": "http",
+      "url": "http://localhost:8000/mcp"
+    }
   }
 }
