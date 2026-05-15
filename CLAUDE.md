@@ -15,7 +15,7 @@ Two-repo model:
 | File | Purpose |
 |---|---|
 | `Dockerfile` | Builds the image: node:22, Bun, Claude Code, gh CLI |
-| `entrypoint.sh` | Registers plugin marketplace, installs Telegram plugin, configures git credentials, registers n8n MCP servers, starts `claude` |
+| `entrypoint.sh` | Registers plugin marketplace, installs Telegram plugin, configures git credentials, starts `claude` |
 | `docker-compose.yml` | Two services: `agent` (Claude Code) + `n8n` (workflow automation), both on `clovis-net` |
 | `setup.sh` | First-time setup: scaffolds `.env`, prompts for credentials, auto-generates `N8N_ENCRYPTION_KEY` |
 
@@ -48,27 +48,49 @@ docker compose logs -f            # follow logs
 
 ## n8n — workflow integrations via MCP
 
-n8n runs as a sidecar container and exposes integrations (Google, Waha, Todoist, etc.) as MCP servers that Claude picks up automatically.
+n8n runs as a sidecar container and exposes integrations (Google, Waha, Todoist, etc.) as MCP servers.
 
 **UI:** `http://localhost:5678` (accessible from the host browser)
 
-**Adding an integration:**
-1. Open n8n, create a new workflow, add an **MCP Server Trigger** as the first node
-2. Add the service nodes (e.g. Google Sheets, Gmail) as tools under that trigger
-3. Activate the workflow — n8n shows the MCP endpoint URL in the trigger node
-4. Copy the URL, replace `localhost` with `n8n`: `http://n8n:5678/mcp/your-webhook-id`
-5. Uncomment (or add) the matching line in `docker-compose.yml` under `agent.environment`, replacing the placeholder with the real webhook ID:
-   ```yaml
-   N8N_MCP_GMAIL: http://n8n:5678/mcp/your-gmail-webhook-id
-   N8N_MCP_GCAL: http://n8n:5678/mcp/your-gcal-webhook-id
-   ```
-6. Restart the agent container: `docker compose restart agent`
-
-Claude will log `entrypoint: registered MCP server 'n8n-google'` on startup when the var is active.
-
-MCP URLs go in `docker-compose.yml` directly (not `.env`) — they contain no secrets and the `n8n` hostname only resolves inside the Docker network.
-
 **Data:** persisted in `./n8n-data/` (gitignored, owned by UID 1000).
+
+### Creating a workflow in n8n
+
+1. Open n8n, create a new workflow, add an **MCP Server Trigger** as the first node
+2. Add service nodes (e.g. Google Sheets, Gmail) as tools under that trigger
+3. Activate the workflow — n8n shows the MCP endpoint URL in the trigger node
+4. Copy the URL and replace `localhost` with `n8n`: `http://n8n:5678/mcp/your-webhook-id`
+
+### Registering the MCP in the workspace
+
+MCPs are declared in `data/workspace/.mcp.json` (inside the container: `/home/clovis/workspace/.mcp.json`). Edit or create the file on the host:
+
+```json
+{
+  "mcpServers": {
+    "gmail": {
+      "type": "http",
+      "url": "http://n8n:5678/mcp/your-webhook-id"
+    },
+    "gcal": {
+      "type": "http",
+      "url": "http://n8n:5678/mcp/another-webhook-id"
+    }
+  }
+}
+```
+
+Then restart the agent: `docker compose restart agent`.
+
+> **Note:** The `n8n` hostname only resolves inside the Docker network — use it in `.mcp.json`, not `localhost`.
+
+### Asking Claude to register an MCP
+
+You can ask the Claude instance running in the container to do this for you via Telegram:
+
+> "Add an MCP server called `gmail` pointing to `http://n8n:5678/mcp/<webhook-id>` in the workspace `.mcp.json`"
+
+Claude will edit `workspace/.mcp.json` directly. The change takes effect after `/mcp reset` or a container restart.
 
 ## Git conventions
 
