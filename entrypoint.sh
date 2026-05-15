@@ -20,6 +20,21 @@ if [ -n "${GITHUB_TOKEN:-}" ]; then
   export GH_TOKEN="$GITHUB_TOKEN"
 fi
 
+# Register any N8N_MCP_* env vars as MCP servers in Claude's settings.
+# Each var becomes a named MCP entry: N8N_MCP_GOOGLE → "n8n-google"
+# URLs are set directly in docker-compose.yml (no secrets, internal network only).
+_SETTINGS="${HOME}/.claude/settings.json"
+if [ -f "$_SETTINGS" ] && command -v jq > /dev/null 2>&1; then
+  env | grep '^N8N_MCP_' | while IFS='=' read -r _key _url; do
+    [ -z "$_url" ] && continue
+    _name="n8n-$(echo "$_key" | sed 's/^N8N_MCP_//' | tr '[:upper:]' '[:lower:]')"
+    _tmp=$(mktemp)
+    jq --arg n "$_name" --arg u "$_url" \
+      '.mcpServers[$n] = {"type": "http", "url": $u}' "$_SETTINGS" > "$_tmp" && mv "$_tmp" "$_SETTINGS"
+    echo "entrypoint: registered MCP server '$_name' → $_url"
+  done
+fi
+
 # Telegram plugin — install once, skip forever after
 # Sentinel lives inside the channels dir so wiping channels/ triggers a clean reinstall.
 _TELEGRAM_SENTINEL="${HOME}/.claude/channels/telegram/.installed"
