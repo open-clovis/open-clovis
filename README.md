@@ -45,6 +45,10 @@ At startup, the entrypoint registers the official plugin marketplace (`anthropic
 
 n8n runs as a sidecar container and exposes third-party service integrations (Gmail, Google Calendar, Todoist, WhatsApp, and others) as MCP servers that Claude picks up automatically on start.
 
+n8n is a heavier container than the rest of the stack, but it earns its keep in two ways. First, it handles OAuth authentication with Google — connecting to Gmail or Google Calendar through n8n means you go through Google's official consent screen once, and n8n stores and refreshes the credentials for you, without needing to write any auth code. Second, it lets you define exactly which tools the agent can use per integration. You wire up only the nodes you want to expose, and the agent only sees those. This is the practical path to least-privilege access: Claude can read your inbox and create drafts, but if the "Send email" node is not in the workflow, it simply cannot send.
+
+![n8n Gmail MCP workflow with limited tools — read, draft, no send](docs/n8n-gmail-mcp-workflow.png)
+
 ```
                       Telegram API
                            │
